@@ -36,17 +36,26 @@ const getImage = (piece: PieceSymbol, color: 'w' | 'b') => {
 function App() {
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [targetSquares, setTargetSquares] = useState<Set<string> | null>(null);
-
+  const [promotion, setPromotion] = useState<Omit<PieceSymbol, 'k'|'p'> | ''>('')
   const chess = useRef(new Chess());
 
   const handleClick = (e: React.MouseEvent) => {
     if (!selectedSquare) {
-      setSelectedSquare(e.currentTarget.id);
-      const moveList = chess.current
-        .moves({square: e.currentTarget.id as Square, verbose: true})
-        .map((x) => x.to);
-      setTargetSquares(new Set(moveList));
+      const squareInfo = chess.current.get(e.currentTarget.id as Square);
+      if(squareInfo && squareInfo.color === chess.current.turn()){
+        setSelectedSquare(e.currentTarget.id);
+        const moveList = chess.current
+          .moves({square: e.currentTarget.id as Square, verbose: true})
+          .map((x) => x.to);
+        setTargetSquares(new Set(moveList));
+      }
+      
     } else {
+      if(targetSquares?.has(e.currentTarget.id)){
+        //this is a legal move!
+        chess.current.move({from: selectedSquare, to: e.currentTarget.id})
+
+      }
       setSelectedSquare(null);
       setTargetSquares(null);
     }
