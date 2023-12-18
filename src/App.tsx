@@ -1,6 +1,9 @@
 import styled from 'styled-components';
+import {firebaseConfig} from './firebaseConfig'
+import { initializeApp } from 'firebase/app';
+import {Database, get, getDatabase, ref} from 'firebase/database'
 import {Chess, PieceSymbol, Square, Move} from 'chess.js';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import blackPawn from './images/blackPawn2.png';
 import blackRook from './images/blackRook2.png';
 import blackKnight from './images/blackKnight2.png';
@@ -14,7 +17,13 @@ import whiteBishop from './images/whiteBishop2.png';
 import whiteQueen from './images/whiteQueen2.png';
 import whiteKing from './images/whiteKing2.png';
 import Promo from './Components/Promo';
+import { PGNFormat, PGNMove } from './types';
 
+const app = initializeApp(firebaseConfig);
+const blankPGN:PGNFormat = {
+  fen: '8/8/8/8/8/8/8/8 w - - 0 1',
+  pgn: []
+}
 const getImage = (piece: PieceSymbol, color: 'w' | 'b') => {
   switch (piece) {
     case 'p':
@@ -34,6 +43,8 @@ const getImage = (piece: PieceSymbol, color: 'w' | 'b') => {
   }
 };
 
+
+
 function App() {
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const [targetSquares, setTargetSquares] = useState<Map<
@@ -41,8 +52,17 @@ function App() {
     Omit<Move, 'to'>
   > | null>(null);
   const [showPromo, setShowPromo] = useState<boolean>(false);
+  const [playerColor, setPlayerColor] = useState<'w'|'b'>('w')
+  const [playerMove, setPlayerMove] = useState<boolean>(false);
+  const [solution, setSolution] = useState<PGNMove[]>([])
+  const [tacticActive, setTacticActive] = useState<boolean>(false);
+  const [attemptedMove, setAttemptedMove] = useState<string | null>(null);
+  const [showSolution, setShowSolution] = useState<boolean>(false)
+  const [loadNewTactic, setLoadNewTactic] = useState<boolean>(true)
   const promoInfo = useRef<{to: Square; from: Square} | null>(null);
   const chess = useRef(new Chess('rk1q4/ppp2P1P/8/8/8/8/6P1/3QK2R w K - 0 1'));
+  const db = useRef<Database>(getDatabase(app))
+  const currentTactic = useRef<PGNFormat>(blankPGN);
 
   const handleClick = (e: React.MouseEvent) => {
     if (!selectedSquare) {
@@ -95,6 +115,25 @@ function App() {
     setShowPromo(false);
     promoInfo.current = null;
   };
+  useEffect(()=>{
+    const loadTactic = async ()=>{
+      const random = Math.floor(Math.random() * 4740); //NOTE: 4740 is CURRENT number of tactics in the DB
+      const fetch = await get(ref(db.current, `tacticsList/${random}`));
+      const tactic:PGNFormat = await fetch.val();
+      chess.current.load(tactic.fen);
+      setPlayerColor(chess.current.turn());
+      setAttemptedMove(null);
+      setPlayerMove(true);
+      setSolution(tactic.pgn);
+      setTacticActive(true);
+      currentTactic.current = tactic;
+
+    }
+    if(loadNewTactic){
+      loadTactic();
+      setLoadNewTactic(false)
+    }
+  },[loadNewTactic])
   return (
     <Container>
       <div className="title">Tactics Trainer</div>
