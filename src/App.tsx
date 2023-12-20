@@ -4,6 +4,8 @@ import {initializeApp} from 'firebase/app';
 import {Database, get, getDatabase, ref} from 'firebase/database';
 import {Chess, PieceSymbol, Square, Move} from 'chess.js';
 import React, {useEffect, useRef, useState} from 'react';
+import {GoDotFill} from 'react-icons/go';
+
 import blackPawn from './images/blackPawn2.png';
 import blackRook from './images/blackRook2.png';
 import blackKnight from './images/blackKnight2.png';
@@ -59,7 +61,7 @@ function App() {
   const [moveResult, setMoveResult] = useState<boolean | null>(null);
   const [loadNewTactic, setLoadNewTactic] = useState<boolean>(true);
   const promoInfo = useRef<{to: Square; from: Square} | null>(null);
-  const chess = useRef(new Chess());
+  const chess = useRef(new Chess("8/1PBP4/2kN4/5P2/3K4/8/8/8 w - - 0 1"));
   const db = useRef<Database>(getDatabase(app));
   const currentTactic = useRef<PGNFormat>(blankPGN);
   const moveHistory = useRef<string>('');
@@ -108,7 +110,7 @@ function App() {
   const promotePiece = (e: React.MouseEvent) => {
     if (promoInfo.current) {
       const {to, from} = promoInfo.current;
-      movePiece(to, from, e.currentTarget.id);
+      movePiece(from, to, e.currentTarget.id);
       setShowPromo(false);
       promoInfo.current = null;
     }
@@ -119,6 +121,18 @@ function App() {
     setTargetSquares(null);
     setShowPromo(false);
     promoInfo.current = null;
+  };
+  const retry = () => {
+    setPlayerMove(true);
+    setTacticActive(true);
+    setShowSolution(false);
+    setSolution(currentTactic.current.pgn);
+    setSelectedSquare(null);
+    setTargetSquares(null);
+    setAttemptedMove(null);
+    
+    setMoveResult(null);
+    chess.current.load(currentTactic.current.fen);
   };
   //load a tactic
   useEffect(() => {
@@ -150,6 +164,7 @@ function App() {
           //the last move of the solution
           setTacticActive(false);
           setShowSolution(false);
+          setSolution([]);
         } else {
           //there are more moves in the solution
           theAnswer.shift();
@@ -183,6 +198,23 @@ function App() {
       }
     }
   }, [playerMove, tacticActive, solution]);
+  // Show the solution is the button is pressed
+  useEffect(() => {
+    if (tacticActive && showSolution) {
+      console.log('test');
+      if (solution.length > 0) {
+        const theAnswer = [...solution];
+        const nextMove = theAnswer.shift();
+        setTimeout(() => {
+          chess.current.move(nextMove!.move);
+          setSolution(theAnswer);
+        }, 1000);
+      } else {
+        setShowSolution(false);
+        setTacticActive(false);
+      }
+    }
+  }, [tacticActive, showSolution, solution]);
   return (
     <Container>
       <div className="title">Tactics Trainer</div>
@@ -210,13 +242,13 @@ function App() {
                     }
                     key={j}
                     $selected={selectedSquare === id}
-                    $targetted={
-                      targetSquares ? targetSquares.has(id as Square) : false
-                    }
                     id={id}
                     onClick={handleClick}
                     //onDragEnter={handleDragEnter}
                   >
+                    {targetSquares && targetSquares.has(id as Square) && (
+                      <GoDotFill className="dot" />
+                    )}
                     {i === 7 && <div className="file">{id[0]}</div>}
                     {j === 0 && <div className="rank">{id[1]}</div>}
                     {square && (
@@ -244,15 +276,33 @@ function App() {
           {moveResult === true && <>Great Job!</>}
         </Results>
       </div>
+      <Controls>
+        <button
+          onClick={() =>
+            window.open(
+              `https://lichess.org/analysis/${currentTactic.current.fen}`
+            )
+          }
+        >
+          Analysis
+        </button>
+        {solution.length > 0 && (
+          <button disabled={showSolution} onClick={() => setShowSolution(true)}>
+            View Solution
+          </button>
+        )}
+        {solution.length === 0 && <button onClick={retry}>Retry</button>}
+        <button disabled={showSolution && tacticActive} onClick = {()=>setLoadNewTactic(true)}>Next Tactic</button>
+      </Controls>
     </Container>
   );
 }
 const Results = styled.div<{$color: boolean}>`
-  height: 50px;
+  height: 30px;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 20px;
+  font-size: 18px;
   color: ${(props) => (props.$color ? 'green' : 'red')};
 `;
 const BoardRow = styled.div`
@@ -262,24 +312,19 @@ const BoardRow = styled.div`
 const BoardSquare = styled.div<{
   $squareColor: 'dark' | 'light';
   $selected: boolean;
-  $targetted: boolean;
 }>`
-  background-color: ${props=>props.$squareColor === 'light' ? '#EDD6B0': '#B88762'};
-  outline: ${(props) =>
-    props.$selected
-      ? '4px solid yellow'
-      : props.$targetted
-      ? '4px solid red'
-      : '0px'};
+  background-color: ${(props) =>
+    props.$squareColor === 'light' ? '#EDD6B0' : '#B88762'};
+  outline: ${(props) => (props.$selected ? '4px solid yellow' : '0px')};
   box-sizing: border-box;
   position: relative;
   outline-offset: -4px;
-  height: 60px;
-  width: 60px;
+  height: 65px;
+  width: 65px;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: ${props=>props.$squareColor === 'light' ? '#B88762' : '#EDD6B0'};
+  color: ${(props) => (props.$squareColor === 'light' ? '#B88762' : '#EDD6B0')};
   img {
     width: 80%;
     margin: auto;
@@ -294,12 +339,34 @@ const BoardSquare = styled.div<{
     top: 2px;
     left: 2px;
   }
+  .dot {
+    color: black;
+    position: absolute;
+    opacity: 0.25;
+  }
+`;
+const Controls = styled.div`
+  display: flex;
+  flex-direction: row;
+  width: 480px;
+  margin: auto;
+  justify-content: center;
+  align-items: center;
+  button {
+    height: 50px;
+    width: 100px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+  }
 `;
 const Container = styled.div`
   text-align: center;
   height: 100vh;
   .title {
-    font-size: 40px;
+    font-size: 30px;
     color: white;
   }
   .board {
