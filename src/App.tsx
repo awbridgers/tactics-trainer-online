@@ -60,6 +60,7 @@ function App() {
   const [showSolution, setShowSolution] = useState<boolean>(false);
   const [moveResult, setMoveResult] = useState<boolean | null>(null);
   const [loadNewTactic, setLoadNewTactic] = useState<boolean>(true);
+  const [prevMove, setPrevMove] = useState<{to: Square, from: Square} | null>()
   const promoInfo = useRef<{to: Square; from: Square} | null>(null);
   const chess = useRef(new Chess("8/1PBP4/2kN4/5P2/3K4/8/8/8 w - - 0 1"));
   const db = useRef<Database>(getDatabase(app));
@@ -130,7 +131,7 @@ function App() {
     setSelectedSquare(null);
     setTargetSquares(null);
     setAttemptedMove(null);
-    
+    setPrevMove(null)
     setMoveResult(null);
     chess.current.load(currentTactic.current.fen);
   };
@@ -141,11 +142,13 @@ function App() {
       const fetch = await get(ref(db.current, `tacticsList/${random}`));
       const tactic: PGNFormat = await fetch.val();
       chess.current.load(tactic.fen);
+      console.log(chess.current.history())
       setPlayerColor(chess.current.turn());
       setAttemptedMove(null);
       setPlayerMove(true);
       setSolution(tactic.pgn);
       setTacticActive(true);
+      setPrevMove(null)
       currentTactic.current = tactic;
     };
     if (loadNewTactic) {
@@ -191,7 +194,8 @@ function App() {
       const computerMove = theAnswer.shift();
       if (computerMove) {
         setTimeout(() => {
-          chess.current.move(computerMove.move);
+          const nextMove = chess.current.move(computerMove.move);
+          console.log(nextMove)
           setSolution(theAnswer);
           setPlayerMove(true);
         }, 500);
@@ -215,6 +219,16 @@ function App() {
       }
     }
   }, [tacticActive, showSolution, solution]);
+  useEffect(()=>{
+    if(tacticActive){
+      const history = chess.current.history({verbose: true});
+      if(history.length > 0){
+        const {to, from} = history[history.length-1]
+        setPrevMove({to, from})
+      }
+    }
+
+  }, [tacticActive,attemptedMove, solution])
   return (
     <Container>
       <div className="title">Tactics Trainer</div>
@@ -266,6 +280,7 @@ function App() {
                         cancel={() => cancelPromotion()}
                       />
                     )}
+                    {prevMove && (prevMove.to === id || prevMove.from === id) && <PrevMove/>}
                   </BoardSquare>
                 );
               })}
@@ -297,6 +312,13 @@ function App() {
     </Container>
   );
 }
+const PrevMove = styled.div`
+  background-color: yellow;
+  opacity: .3;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+`
 const Results = styled.div<{$color: boolean}>`
   height: 30px;
   display: flex;
@@ -328,6 +350,7 @@ const BoardSquare = styled.div<{
   img {
     width: 80%;
     margin: auto;
+    z-index: 2;
   }
   .file {
     position: absolute;
