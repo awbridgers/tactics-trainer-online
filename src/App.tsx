@@ -21,6 +21,7 @@ import whiteKing from './images/whiteKing2.png';
 import Promo from './Components/Promo';
 import {PGNFormat, PGNMove} from './types';
 import { useMediaQuery } from 'react-responsive'
+import { FaCheck } from 'react-icons/fa6';
 
 
 const app = initializeApp(firebaseConfig);
@@ -296,6 +297,7 @@ function App() {
           ))}
         <Results>
           {moveResult.map(x=><div className = 'move'>{x.move}</div>)}
+          {solution.length === 0 && <FaCheck style ={{color: 'green', fontSize: '25px'}}/>}
         </Results>
       </div>
       <Controls $mobile = {isMobile}>
@@ -336,6 +338,7 @@ const Results = styled.div`
   color: white;
   .move{
     margin: 0px 5px;
+    font-size: 22px;
   }
 `;
 const BoardRow = styled.div`
@@ -396,6 +399,7 @@ const Controls = styled.div<{$mobile: boolean}>`
     justify-content: center;
     align-items: center;
     font-size: 20px;
+    margin: 5px 0px;
   }
 `;
 const Container = styled.div`
