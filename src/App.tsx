@@ -58,7 +58,7 @@ function App() {
   const [tacticActive, setTacticActive] = useState<boolean>(false);
   const [attemptedMove, setAttemptedMove] = useState<string | null>(null);
   const [showSolution, setShowSolution] = useState<boolean>(false);
-  const [moveResult, setMoveResult] = useState<boolean | null>(null);
+  const [moveResult, setMoveResult] = useState<PGNMove[]>([]);
   const [loadNewTactic, setLoadNewTactic] = useState<boolean>(true);
   const [prevMove, setPrevMove] = useState<{to: Square, from: Square} | null>()
   const promoInfo = useRef<{to: Square; from: Square} | null>(null);
@@ -132,7 +132,7 @@ function App() {
     setTargetSquares(null);
     setAttemptedMove(null);
     setPrevMove(null)
-    setMoveResult(null);
+    setMoveResult([]);
     chess.current.load(currentTactic.current.fen);
   };
   //load a tactic
@@ -148,7 +148,8 @@ function App() {
       setPlayerMove(true);
       setSolution(tactic.pgn);
       setTacticActive(true);
-      setPrevMove(null)
+      setPrevMove(null);
+      setMoveResult([])
       currentTactic.current = tactic;
     };
     if (loadNewTactic) {
@@ -162,7 +163,7 @@ function App() {
       const theAnswer = [...solution];
       if (theAnswer[0].move.includes(attemptedMove)) {
         //this move is correct!
-        setMoveResult(true);
+        setMoveResult([...moveResult, theAnswer[0]]);
         if (theAnswer.length === 1) {
           //the last move of the solution
           setTacticActive(false);
@@ -177,7 +178,7 @@ function App() {
         }
       } else {
         //the move is incorrect
-        setMoveResult(false);
+        
         setTimeout(() => {
           chess.current.load(moveHistory.current);
           setAttemptedMove(null);
@@ -185,7 +186,7 @@ function App() {
         }, 1000);
       }
     }
-  }, [attemptedMove, tacticActive, solution]);
+  }, [attemptedMove, tacticActive, solution, moveResult]);
   //the computer move
   useEffect(() => {
     if (!playerMove && tacticActive) {
@@ -195,30 +196,32 @@ function App() {
       if (computerMove) {
         setTimeout(() => {
           const nextMove = chess.current.move(computerMove.move);
-          console.log(nextMove)
+          //console.log(nextMove)
           setSolution(theAnswer);
+          setMoveResult([...moveResult, computerMove])
           setPlayerMove(true);
         }, 500);
       }
     }
-  }, [playerMove, tacticActive, solution]);
+  }, [playerMove, tacticActive, solution, moveResult]);
   // Show the solution is the button is pressed
   useEffect(() => {
     if (tacticActive && showSolution) {
-      console.log('test');
+      //console.log('test');
       if (solution.length > 0) {
         const theAnswer = [...solution];
         const nextMove = theAnswer.shift();
         setTimeout(() => {
           chess.current.move(nextMove!.move);
           setSolution(theAnswer);
+          setMoveResult([...moveResult, nextMove!])
         }, 1000);
       } else {
         setShowSolution(false);
         setTacticActive(false);
       }
     }
-  }, [tacticActive, showSolution, solution]);
+  }, [tacticActive, showSolution, solution, moveResult]);
   useEffect(()=>{
     if(tacticActive){
       const history = chess.current.history({verbose: true});
@@ -286,9 +289,8 @@ function App() {
               })}
             </BoardRow>
           ))}
-        <Results $color={!!moveResult}>
-          {moveResult === false && <>Incorrect, keep trying!</>}
-          {moveResult === true && <>Great Job!</>}
+        <Results>
+          {moveResult.map(x=><div className = 'move'>{x.move}</div>)}
         </Results>
       </div>
       <Controls>
@@ -307,7 +309,7 @@ function App() {
           </button>
         )}
         {solution.length === 0 && <button onClick={retry}>Retry</button>}
-        <button disabled={showSolution && tacticActive} onClick = {()=>setLoadNewTactic(true)}>Next Tactic</button>
+        <button disabled={showSolution || tacticActive} onClick = {()=>setLoadNewTactic(true)}>Next Tactic</button>
       </Controls>
     </Container>
   );
@@ -319,13 +321,17 @@ const PrevMove = styled.div`
   width: 100%;
   position: absolute;
 `
-const Results = styled.div<{$color: boolean}>`
+const Results = styled.div`
   height: 30px;
   display: flex;
+  flex-direction: row wrap;
   justify-content: center;
   align-items: center;
   font-size: 18px;
-  color: ${(props) => (props.$color ? 'green' : 'red')};
+  color: white;
+  .move{
+    margin: 0px 5px;
+  }
 `;
 const BoardRow = styled.div`
   display: flex;
@@ -363,9 +369,10 @@ const BoardSquare = styled.div<{
     left: 2px;
   }
   .dot {
-    color: black;
+    color: red;
     position: absolute;
-    opacity: 0.25;
+    opacity: 0.5;
+    z-index: 5;
   }
 `;
 const Controls = styled.div`

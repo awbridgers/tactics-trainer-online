@@ -1,6 +1,7 @@
 {
   "name": "tactics-trainer-online",
   "version": "0.1.0",
+  "homepage": "https://awbridgers.github.io/tactics-trainer-online",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
@@ -13,6 +14,7 @@
     "@types/react-dom": "^18.2.18",
     "chess.js": "^1.0.0-beta.6",
     "firebase": "^10.7.1",
+    "gh-pages": "^6.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.12.0",
@@ -25,7 +27,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
