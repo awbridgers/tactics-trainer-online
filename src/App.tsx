@@ -62,7 +62,7 @@ function App() {
   const [loadNewTactic, setLoadNewTactic] = useState<boolean>(true);
   const [prevMove, setPrevMove] = useState<{to: Square, from: Square} | null>()
   const promoInfo = useRef<{to: Square; from: Square} | null>(null);
-  const chess = useRef(new Chess("8/1PBP4/2kN4/5P2/3K4/8/8/8 w - - 0 1"));
+  const chess = useRef(new Chess(blankPGN.fen));
   const db = useRef<Database>(getDatabase(app));
   const currentTactic = useRef<PGNFormat>(blankPGN);
   const moveHistory = useRef<string>('');
