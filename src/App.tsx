@@ -20,6 +20,8 @@ import whiteQueen from './images/whiteQueen2.png';
 import whiteKing from './images/whiteKing2.png';
 import Promo from './Components/Promo';
 import {PGNFormat, PGNMove} from './types';
+import { useMediaQuery } from 'react-responsive'
+
 
 const app = initializeApp(firebaseConfig);
 const blankPGN: PGNFormat = {
@@ -62,10 +64,11 @@ function App() {
   const [loadNewTactic, setLoadNewTactic] = useState<boolean>(true);
   const [prevMove, setPrevMove] = useState<{to: Square, from: Square} | null>()
   const promoInfo = useRef<{to: Square; from: Square} | null>(null);
-  const chess = useRef(new Chess(blankPGN.fen));
+  const chess = useRef(new Chess());
   const db = useRef<Database>(getDatabase(app));
   const currentTactic = useRef<PGNFormat>(blankPGN);
   const moveHistory = useRef<string>('');
+  const isMobile = useMediaQuery({ maxWidth: 850 })
 
   //handle the seleciton of squares for the movement of pieces
   const handleClick = (e: React.MouseEvent) => {
@@ -151,6 +154,7 @@ function App() {
       setPrevMove(null);
       setMoveResult([])
       currentTactic.current = tactic;
+      console.log(isMobile)
     };
     if (loadNewTactic) {
       loadTactic();
@@ -257,6 +261,7 @@ function App() {
                         ? 'light'
                         : 'dark'
                     }
+                    $mobile = {isMobile}
                     key={j}
                     $selected={selectedSquare === id}
                     id={id}
@@ -340,6 +345,7 @@ const BoardRow = styled.div`
 const BoardSquare = styled.div<{
   $squareColor: 'dark' | 'light';
   $selected: boolean;
+  $mobile: boolean;
 }>`
   background-color: ${(props) =>
     props.$squareColor === 'light' ? '#EDD6B0' : '#B88762'};
@@ -347,8 +353,8 @@ const BoardSquare = styled.div<{
   box-sizing: border-box;
   position: relative;
   outline-offset: -4px;
-  height: 65px;
-  width: 65px;
+  height: ${(props)=>props.$mobile ? `calc(100vw / 8)` : '65px'};
+  width: ${(props)=>props.$mobile ? `calc(100vw / 8)` : '65px'};
   display: flex;
   justify-content: center;
   align-items: center;
