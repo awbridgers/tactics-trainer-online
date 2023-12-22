@@ -68,7 +68,7 @@ function App() {
   const db = useRef<Database>(getDatabase(app));
   const currentTactic = useRef<PGNFormat>(blankPGN);
   const moveHistory = useRef<string>('');
-  const isMobile = useMediaQuery({ maxWidth: 850 })
+  const isMobile = useMediaQuery({ maxWidth: 550 })
 
   //handle the seleciton of squares for the movement of pieces
   const handleClick = (e: React.MouseEvent) => {
@@ -384,7 +384,7 @@ const BoardSquare = styled.div<{
 const Controls = styled.div`
   display: flex;
   flex-direction: row;
-  width: 480px;
+  width: 100%;
   margin: auto;
   justify-content: center;
   align-items: center;
