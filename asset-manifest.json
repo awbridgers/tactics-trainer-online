@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/tactics-trainer-online/static/css/main.80640824.css",
-    "main.js": "/tactics-trainer-online/static/js/main.9fe8325c.js",
+    "main.js": "/tactics-trainer-online/static/js/main.a10329d5.js",
     "static/js/787.8acb3e2c.chunk.js": "/tactics-trainer-online/static/js/787.8acb3e2c.chunk.js",
     "index.html": "/tactics-trainer-online/index.html",
     "main.80640824.css.map": "/tactics-trainer-online/static/css/main.80640824.css.map",
-    "main.9fe8325c.js.map": "/tactics-trainer-online/static/js/main.9fe8325c.js.map",
+    "main.a10329d5.js.map": "/tactics-trainer-online/static/js/main.a10329d5.js.map",
     "787.8acb3e2c.chunk.js.map": "/tactics-trainer-online/static/js/787.8acb3e2c.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.80640824.css",
-    "static/js/main.9fe8325c.js"
+    "static/js/main.a10329d5.js"
   ]
 }
