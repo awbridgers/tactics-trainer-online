@@ -298,7 +298,7 @@ function App() {
           {moveResult.map(x=><div className = 'move'>{x.move}</div>)}
         </Results>
       </div>
-      <Controls>
+      <Controls $mobile = {isMobile}>
         <button
           onClick={() =>
             window.open(
@@ -381,9 +381,9 @@ const BoardSquare = styled.div<{
     z-index: 5;
   }
 `;
-const Controls = styled.div`
+const Controls = styled.div<{$mobile: boolean}>`
   display: flex;
-  flex-direction: row;
+  flex-direction: ${props=>props.$mobile ? 'column' : 'row'};
   width: 100%;
   margin: auto;
   justify-content: center;
