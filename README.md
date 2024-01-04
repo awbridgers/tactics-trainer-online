@@ -9,5 +9,6 @@
 * Problems come from Laszlo Polgar's "Chess: 5334 Problems, Combinations and Games"
 * Hit the **View Solution** button if you are stuck.
 * After a solving or viewing the solution, you can **retry**, **analyze** on Lichess.org, or just go to the **next** tactic.
-###Author
+
+### Author
 Adam Bridgers
