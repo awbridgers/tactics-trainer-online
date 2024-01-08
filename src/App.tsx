@@ -48,6 +48,7 @@ const getImage = (piece: PieceSymbol, color: 'w' | 'b') => {
   }
 };
 
+
 function App() {
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const [targetSquares, setTargetSquares] = useState<Map<
@@ -70,6 +71,7 @@ function App() {
   const currentTactic = useRef<PGNFormat>(blankPGN);
   const moveHistory = useRef<string>('');
   const isMobile = useMediaQuery({ maxWidth: 550 })
+  const board = playerColor === 'w' ? chess.current.board() : chess.current.board().reverse();
 
   //handle the seleciton of squares for the movement of pieces
   const handleClick = (e: React.MouseEvent) => {
@@ -155,7 +157,7 @@ function App() {
       setPrevMove(null);
       setMoveResult([])
       currentTactic.current = tactic;
-      console.log(isMobile)
+      //console.log(isMobile)
     };
     if (loadNewTactic) {
       loadTactic();
@@ -245,12 +247,14 @@ function App() {
         <div className="subTitle">
           {playerColor === 'w' ? 'White' : 'Black'} to play
         </div>
-
+    
         {chess.current &&
-          chess.current.board().map((row, i) => (
+          board.map((row, i) => {
+            const rowArr = playerColor === 'w' ? row : row.reverse();
+          return (
             <BoardRow key={i}>
-              {row.map((square, j) => {
-                const id = `${String.fromCharCode(j + 97)}${8 - i}`;
+              {rowArr.map((square, j) => {
+                const id = playerColor === 'w' ? `${String.fromCharCode(j + 97)}${8 - i}` : `${String.fromCharCode(104-j)}${i+1}`;
                 return (
                   <BoardSquare
                     $squareColor={
@@ -294,7 +298,7 @@ function App() {
                 );
               })}
             </BoardRow>
-          ))}
+          )})}
         <Results>
           {moveResult.map(x=><div className = 'move'>{x.move}</div>)}
           {solution.length === 0 && <FaCheck style ={{color: 'green', fontSize: '25px'}}/>}

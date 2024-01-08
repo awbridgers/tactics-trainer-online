@@ -70,7 +70,7 @@ const Container = styled.div`
   background-color: #a2a3a2;
   position: absolute;
   top: 0px;
-  z-index: 1;
+  z-index: 3;
   .cancel {
     background-color: grey;
     width: 100%;
